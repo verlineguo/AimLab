@@ -6,6 +6,33 @@ const renderer = new THREE.WebGLRenderer();
 renderer.setSize(window.innerWidth, window.innerHeight);
 document.body.appendChild(renderer.domElement);
 cam.position.z = 10;
+scene.background = new THREE.Color(0xffffff);
+const scoreDiv = document.getElementById("score");
+let score = 0
+
+
+class Ball {
+    constructor(scene) {
+        const geo = new THREE.SphereGeometry(0.18, 16, 16);
+        const mat = new THREE.MeshStandardMaterial({ color: 0x0077ff });
+        this.mesh = new THREE.Mesh(geo, mat);
+
+        this.randomize();
+        scene.add(this.mesh);
+
+    
+    }
+
+    randomize() {
+        this.mesh.position.set(
+            (Math.random() - 0.5) * 6,
+            (Math.random() - 0.5) * 4,
+            Math.random() * -6
+        );
+    }
+
+}
+
 
 // buat lighting
 const ambient = new THREE.AmbientLight(0xffffff, 0.8);
@@ -20,23 +47,20 @@ light2.position.set(-5, -5, 5);
 scene.add(light2);
 
 
-// bola target biru
-const targetGeo = new THREE.SphereGeometry(0.18, 16, 16);
-const targetMat = new THREE.MeshStandardMaterial({
-    color: 0x0077ff
-});
-const ball = new THREE.Mesh(targetGeo, targetMat);
+const balls = []
+const jumlah_bola = 20;
 
-// posisi random
-function randomizeBall() {
-    ball.position.set(
-        (Math.random() - 0.5) * 6,
-        (Math.random() - 0.5) * 4,
-        Math.random() * -6
-    );
+for (let i = 0; i < jumlah_bola; i++) {
+    const b = new Ball(scene);
+    balls.push(b);
 }
-randomizeBall();
-scene.add(ball);
+
+
+const geoRuangan = new THREE.BoxGeometry(5, 5);
+const matRuangan = new THREE.MeshStandardMaterial({ color: 0x111111, side: THREE.BackSide });
+const ruangan = new THREE.Mesh(geoRuangan, matRuangan);
+scene.add(ruangan);
+
 
 // crosshair
 const crosshairMat = new THREE.LineBasicMaterial({ color: 0xff0000 });
@@ -86,10 +110,13 @@ const center = new THREE.Vector2(0, 0);
 
 document.addEventListener("mousedown", () => {
     raycaster.setFromCamera(center, cam);
-    const hit = raycaster.intersectObject(ball);
+    const hit = raycaster.intersectObjects(balls.map(b => b.mesh));
 
     if (hit.length > 0) {
-        randomizeBall();
+        score++;
+        scoreDiv.innerText = `Score: ${score}`;
+        const hitBall = balls.find(b => b.mesh === hit[0].object);
+        hitBall.randomize();
     }
 });
 
@@ -98,3 +125,6 @@ function animate() {
     requestAnimationFrame(animate);
 }
 animate();
+
+
+
