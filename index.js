@@ -28,9 +28,14 @@ const targetMat = new THREE.MeshStandardMaterial({
 const ball = new THREE.Mesh(targetGeo, targetMat);
 
 // posisi random
-ball.position.x = (Math.random() - 0.5) * 6;
-ball.position.y = (Math.random() - 0.5) * 4;
-ball.position.z = Math.random() * -6;
+function randomizeBall() {
+    ball.position.set(
+        (Math.random() - 0.5) * 6,
+        (Math.random() - 0.5) * 4,
+        Math.random() * -6
+    );
+}
+randomizeBall();
 scene.add(ball);
 
 // crosshair
@@ -50,6 +55,43 @@ const crosshair = new THREE.LineSegments(crosshairGeo, crosshairMat);
 crosshair.position.z = -1;
 cam.add(crosshair);
 scene.add(cam);
+
+// fps camera control (ai)
+let yaw = 0;
+let pitch = 0;
+const sensitivity = 0.002;
+
+document.body.requestPointerLock =
+    document.body.requestPointerLock ||
+    document.body.mozRequestPointerLock;
+
+document.addEventListener("click", () => {
+    document.body.requestPointerLock();
+});
+
+document.addEventListener("mousemove", (e) => {
+    if (document.pointerLockElement !== document.body) return;
+
+    yaw -= e.movementX * sensitivity;
+    pitch -= e.movementY * sensitivity;
+
+    pitch = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, pitch));
+
+    cam.rotation.set(pitch, yaw, 0);
+});
+
+// tembak bola (ai)
+const raycaster = new THREE.Raycaster();
+const center = new THREE.Vector2(0, 0);
+
+document.addEventListener("mousedown", () => {
+    raycaster.setFromCamera(center, cam);
+    const hit = raycaster.intersectObject(ball);
+
+    if (hit.length > 0) {
+        randomizeBall();
+    }
+});
 
 function animate() {
     renderer.render(scene, cam);
