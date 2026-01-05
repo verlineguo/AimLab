@@ -1,93 +1,99 @@
 import * as THREE from "three";
 
 const scene = new THREE.Scene();
-const cam = new THREE.PerspectiveCamera(45, window.innerWidth/window.innerHeight, 1, 100);
-const renderer = new THREE.WebGLRenderer();
+scene.background = new THREE.Color(0x000000);
+scene.fog = new THREE.Fog(0x000000, 6, 22); // biar ada depth (jauh-deket)
+
+const cam = new THREE.PerspectiveCamera(
+    60,
+    window.innerWidth / window.innerHeight,
+    0.1,
+    100
+);
+cam.position.z = 5;
+
+// renderer
+const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.shadowMap.enabled = true; // penting biar 3d
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 document.body.appendChild(renderer.domElement);
-cam.position.z = 10;
-scene.background = new THREE.Color(0xffffff);
-const scoreDiv = document.getElementById("score");
-let score = 0
 
-
-class Ball {
-    constructor(scene) {
-        const geo = new THREE.SphereGeometry(0.18, 16, 16);
-        const mat = new THREE.MeshStandardMaterial({ color: 0x0077ff });
-        this.mesh = new THREE.Mesh(geo, mat);
-
-        this.randomize();
-        scene.add(this.mesh);
-
-    
-    }
-
-    randomize() {
-        this.mesh.position.set(
-            (Math.random() - 0.5) * 6,
-            (Math.random() - 0.5) * 4,
-            Math.random() * -6
-        );
-    }
-
-}
-
-
-// buat lighting
-const ambient = new THREE.AmbientLight(0xffffff, 0.8);
+// lighting
+const ambient = new THREE.AmbientLight(0xffffff, 0.25);
 scene.add(ambient);
 
-const light1 = new THREE.PointLight(0xffffff, 2);
-light1.position.set(5, 5, 5);
-scene.add(light1);
+const dirLight = new THREE.DirectionalLight(0xffffff, 2.5);
+dirLight.position.set(5, 10, 6);
+dirLight.castShadow = true;
+scene.add(dirLight);
 
-const light2 = new THREE.PointLight(0xffffff, 1.5);
-light2.position.set(-5, -5, 5);
-scene.add(light2);
+// lantai biar keliatan ruang 3d
+const floorGeo = new THREE.PlaneGeometry(60, 60);
+const floorMat = new THREE.MeshStandardMaterial({
+    color: 0x1a1a1a,
+    roughness: 0.85
+});
+const floor = new THREE.Mesh(floorGeo, floorMat);
+floor.rotation.x = -Math.PI / 2;
+floor.position.y = -3;
+floor.receiveShadow = true;
+scene.add(floor);
 
+// bola target (3d beneran)
+const targetGeo = new THREE.SphereGeometry(0.3, 32, 32);
+const targets = [];
 
-const balls = []
-const jumlah_bola = 20;
+function randomizeBall(ball) {
+    const z = -Math.random() * 14 - 3;
 
-for (let i = 0; i < jumlah_bola; i++) {
-    const b = new Ball(scene);
-    balls.push(b);
+    ball.position.set(
+        (Math.random() - 0.5) * 8,
+        (Math.random() - 0.5) * 5,
+        z
+    );
+
+    // makin jauh makin kecil (kerasa 3d)
+    const scale = 1 + Math.abs(z) * 0.04;
+    ball.scale.setScalar(scale);
 }
 
+// bikin beberapa bola
+for (let i = 0; i < 7; i++) {
+    const targetMat = new THREE.MeshStandardMaterial({
+        color: 0x0077ff,
+        roughness: 0.35,
+        metalness: 0.1
+    });
 
-const geoRuangan = new THREE.BoxGeometry(5, 5);
-const matRuangan = new THREE.MeshStandardMaterial({ color: 0x111111, side: THREE.BackSide });
-const ruangan = new THREE.Mesh(geoRuangan, matRuangan);
-scene.add(ruangan);
+    const ball = new THREE.Mesh(targetGeo, targetMat);
+    ball.castShadow = true;
+    randomizeBall(ball);
 
+    scene.add(ball);
+    targets.push(ball);
+}
 
 // crosshair
 const crosshairMat = new THREE.LineBasicMaterial({ color: 0xff0000 });
-const size = 0.01;
+const size = 0.015;
 
-const crosshairPoints = [
+const crosshairGeo = new THREE.BufferGeometry().setFromPoints([
     new THREE.Vector3(-size, 0, 0),
     new THREE.Vector3(size, 0, 0),
     new THREE.Vector3(0, -size, 0),
     new THREE.Vector3(0, size, 0)
-];
+]);
 
-const crosshairGeo = new THREE.BufferGeometry().setFromPoints(crosshairPoints);
 const crosshair = new THREE.LineSegments(crosshairGeo, crosshairMat);
-
-crosshair.position.z = -1;
+crosshair.position.z = -0.8;
 cam.add(crosshair);
 scene.add(cam);
 
-// fps camera control (ai)
+// fps camera control
 let yaw = 0;
 let pitch = 0;
 const sensitivity = 0.002;
-
-document.body.requestPointerLock =
-    document.body.requestPointerLock ||
-    document.body.mozRequestPointerLock;
 
 document.addEventListener("click", () => {
     document.body.requestPointerLock();
@@ -98,25 +104,21 @@ document.addEventListener("mousemove", (e) => {
 
     yaw -= e.movementX * sensitivity;
     pitch -= e.movementY * sensitivity;
-
     pitch = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, pitch));
 
     cam.rotation.set(pitch, yaw, 0);
 });
 
-// tembak bola (ai)
+// tembak bola
 const raycaster = new THREE.Raycaster();
 const center = new THREE.Vector2(0, 0);
 
 document.addEventListener("mousedown", () => {
     raycaster.setFromCamera(center, cam);
-    const hit = raycaster.intersectObjects(balls.map(b => b.mesh));
+    const hit = raycaster.intersectObjects(targets);
 
     if (hit.length > 0) {
-        score++;
-        scoreDiv.innerText = `Score: ${score}`;
-        const hitBall = balls.find(b => b.mesh === hit[0].object);
-        hitBall.randomize();
+        randomizeBall(hit[0].object);
     }
 });
 
@@ -125,6 +127,3 @@ function animate() {
     requestAnimationFrame(animate);
 }
 animate();
-
-
-
