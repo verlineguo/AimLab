@@ -1,5 +1,7 @@
 import * as THREE from "three";
 
+let score = 0;
+const divScore = document.getElementById("score");
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x000000);
 scene.fog = new THREE.Fog(0x000000, 6, 22); // biar ada depth (jauh-deket)
@@ -119,8 +121,12 @@ document.addEventListener("mousedown", () => {
 
     if (hit.length > 0) {
         randomizeBall(hit[0].object);
+        score++;
+        divScore.textContent = 'score: '+ score;
+
     }
 });
+
 
 function animate() {
     renderer.render(scene, cam);
