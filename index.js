@@ -49,7 +49,7 @@ for (let i = 0; i < 4; i++) {
   const ball = new THREE.Mesh(targetGeo, targetMat);
   ball.castShadow = true;
   randomizeBall(ball);
-
+  
   scene.add(ball);
   targets.push(ball);
 }
@@ -75,12 +75,34 @@ const controls = new PointerLockControls(cam, document.body);
 document.addEventListener('click', () => {controls.lock();});
 controls.update();
 
+// skor dan timer
+let score = 0;
+const divScore = document.getElementById("score");
+let timeLeft = 30;
+const divTimer = document.getElementById("timer");
+const timerInterval = setInterval(() => {
+  timeLeft = timeLeft - 1;
+  divTimer.textContent = 'TIME: ' + timeLeft;
+  if (timeLeft <= 0) {
+    clearInterval(timerInterval);
+    divTimer.textContent = 'TIME UP';
+  }
+}, 1000);
+
 // tembak bola (ai)
 const raycaster = new THREE.Raycaster();
 function shoot() {
+  if (timeLeft <= 0) return;
   raycaster.setFromCamera({ x: 0, y: 0 }, cam);
   const hit = raycaster.intersectObjects(targets);
-  if (hit.length) randomizeBall(hit[0].object);}
+  if (hit.length) {
+    randomizeBall(hit[0].object);
+    // end ai
+    score += 100;
+    divScore.textContent = 'SCORE: ' + score;
+  }
+}
+
 document.addEventListener("mousedown", shoot);
 
 function animate() {
