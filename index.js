@@ -100,8 +100,6 @@ model.rotation.y = Math.PI / 2;
 model.scale.setScalar(0.3);
 let hentak = 0;
 
-
-
 // crosshair
 const crosshairMat = new THREE.LineBasicMaterial({ color: 0xff0000 });
 const size = 0.01;
@@ -125,22 +123,68 @@ controls.update();
 
 // skor dan timer
 let score = 0;
-const divScore = document.getElementById("score");
 let timeLeft = 30;
+let timerStarted = false;
+let gameOver = false;
+
+const divScore = document.getElementById("score");
 const divTimer = document.getElementById("timer");
-const timerInterval = setInterval(() => {
-  timeLeft = timeLeft - 1;
-  divTimer.textContent = 'TIME: ' + timeLeft;
-  if (timeLeft <= 0) {
-    clearInterval(timerInterval);
-    divTimer.textContent = 'TIME UP';
-  }
-}, 1000);
+const gameOverDiv = document.getElementById("gameOver");
+const finalScoreDiv = document.getElementById("finalScore");
+const restartBtn = document.getElementById("restartBtn");
+
+let timerInterval = null;
+
+// awal
+function startTimer() {
+  if (timerStarted || gameOver) return;
+  timerStarted = true;
+
+  timerInterval = setInterval(() => {
+    timeLeft--;
+    divTimer.textContent = 'TIME: ' + timeLeft;
+
+    if (timeLeft <= 0) {
+      endGame();
+    }
+  }, 1000);
+}
+
+// akhir game
+function endGame() {
+  if (gameOver) return;  
+
+  gameOver = true;
+  clearInterval(timerInterval);
+
+  divTimer.textContent = 'TIME UP';
+  gameOverDiv.style.display = 'flex';
+  finalScoreDiv.textContent = 'FINAL SCORE: ' + score;
+}
+
+// restart game
+restartBtn.addEventListener("click", () => {
+  clearInterval(timerInterval);
+
+  score = 0;
+  timeLeft = 30;
+  timerStarted = false;
+  gameOver = false;
+
+  divScore.textContent = 'SCORE: 0';
+  divTimer.textContent = 'TIME: 30';
+  gameOverDiv.style.display = 'none';
+
+  targets.forEach(ball => randomizeBall(ball));
+});
 
 // tembak bola (ai)
 const raycaster = new THREE.Raycaster();
 function shoot() {
   if (timeLeft <= 0) return;
+
+  startTimer();
+
   raycaster.setFromCamera({ x: 0, y: 0 }, cam);
   const hit = raycaster.intersectObjects(targets);
   if (hit.length) {
