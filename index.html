@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tugas Besar UAS :D</title>
+
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background: black;
+        }
+
+        #gameOver {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.85);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            color: #00ffcc;
+            font-family: Arial, sans-serif;
+            z-index: 999;
+            text-align: center;
+        }
+
+
+        #gameOverContent {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+
+        #gameOver h1 {
+            font-size: 56px;
+            margin-bottom: 10px;
+            text-shadow: 0 0 15px #00ffcc;
+        }
+
+        #finalScore {
+            font-size: 28px;
+            margin-bottom: 25px;
+            color: #ffcc00;
+            text-shadow: 0 0 10px #ffcc00;
+        }
+
+        #restartBtn {
+            padding: 14px 28px;
+            font-size: 20px;
+            font-weight: bold;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            background: #00ffcc;
+            color: black;
+            box-shadow: 0 0 15px #00ffcc;
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin-top: 20px;
+        }
+
+        #restartBtn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 25px #00ffcc;
+        }
+    </style>
+</head>
+
+<body>
+
+    <script type="module" src="index.js"></script>
+
+    <!-- SCORE -->
+    <div id="score" style="
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    color: #00ffcc;
+    font-family: Arial, sans-serif;
+    font-size: 24px;
+    font-weight: bold;
+    background: rgba(0,0,0,0.6);
+    padding: 10px 16px;
+    border-radius: 8px;
+    box-shadow: 0 0 10px #00ffcc;">
+        SCORE: 0
+    </div>
+
+    <!-- TIMER -->
+    <div id="timer" style="
+    position: fixed;
+    top: 80px;
+    left: 20px;
+    color: #ffcc00;
+    font-family: Arial, sans-serif;
+    font-size: 24px;
+    font-weight: bold;
+    background: rgba(0,0,0,0.6);
+    padding: 10px 16px;
+    border-radius: 8px;
+    box-shadow: 0 0 8px #ffcc00;">
+        TIME: 30
+    </div>
+
+    <div id="gameOver">
+        <div id="gameOverContent">
+            <h1>TIME UP</h1>
+            <div id="finalScore">SCORE: 0</div>
+            <button id="restartBtn">MAIN</button>
+        </div>
+    </div>
+
+</body>
+
+
+</head>
+
+</html>
