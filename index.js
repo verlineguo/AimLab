@@ -1,5 +1,6 @@
 import * as THREE from "three";
 import { PointerLockControls } from 'three/examples/jsm/controls/PointerLockControls.js';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x000000);
@@ -54,6 +55,53 @@ for (let i = 0; i < 4; i++) {
   targets.push(ball);
 }
 
+
+const albedo = new THREE.TextureLoader().load("./img/boulder/badlands-boulders_albedo.png");
+const ao_tex = new THREE.TextureLoader().load("./img/boulder/badlands-boulders_ao.png.png");
+const normal= new THREE.TextureLoader().load("./img/boulder/badlands-boulders_normal-dx.png");
+const roughness = new THREE.TextureLoader().load("./img/boulder/badlands-boulders_roughness.png");
+const metalness = new THREE.TextureLoader().load("./img/boulder/badlands-boulders_metallic.png");
+
+
+let dindingGeo = new THREE.PlaneGeometry(60, 60);
+let dindingMat = new THREE.MeshLambertMaterial({ color: 0xcfcfcf, side: THREE.DoubleSide, map: albedo, aoMap: ao_tex, normalMap: normal, roughnessMap: roughness, metalnessMap: metalness });
+let dinding1 = new THREE.Mesh(dindingGeo, dindingMat);
+
+dinding1.position.set(-20, 1, 0);
+dinding1.rotation.y = Math.PI / 2;
+scene.add(dinding1);
+
+let dinding2 = new THREE.Mesh(dindingGeo, dindingMat);
+dinding2.position.set(20, 1, 0);
+dinding2.rotation.y = Math.PI / 2;
+scene.add(dinding2);
+
+let dinding3 = new THREE.Mesh(dindingGeo, dindingMat);
+dinding3.position.set(0, 1, -20);
+scene.add(dinding3);
+
+let dinding4 = new THREE.Mesh(dindingGeo, dindingMat);
+dinding4.position.set(0, 1, 20);
+scene.add(dinding4);
+
+let modelLoader = new GLTFLoader();
+let modelScene = await modelLoader.loadAsync('/model/Bullpup.glb')
+
+let model = modelScene.scene;
+model.traverse((obj) => {
+    if (obj.isMesh) {
+        obj.castShadow = true;
+    }
+});
+
+cam.add(model);
+model.position.set(0.55, -0.5, -0.9);
+model.rotation.y = Math.PI / 2;
+model.scale.setScalar(0.3);
+let hentak = 0;
+
+
+
 // crosshair
 const crosshairMat = new THREE.LineBasicMaterial({ color: 0xff0000 });
 const size = 0.01;
@@ -101,11 +149,14 @@ function shoot() {
     score += 100;
     divScore.textContent = 'SCORE: ' + score;
   }
+  hentak += 0.3;
 }
 
 document.addEventListener("mousedown", shoot);
 
 function animate() {
+    hentak *= 0.8;
+    if (model) model.rotation.x = hentak * 0.4;
   renderer.render(scene, cam);
   requestAnimationFrame(animate);
 }
